@@ -21,7 +21,6 @@ def lambda_handler(event, context):
     dynamo_operations = {
         'PUT': lambda x: dynamo.put_item(**x),
         'GET': lambda x: dynamo.get_item(**x),
-        'PATCH': lambda x: dynamo.update_item(**x),
         'DELETE': lambda x: dynamo.delete_item(**x),
         'GET_COLLECTION': lambda x: dynamo.scan(**x)
     }
