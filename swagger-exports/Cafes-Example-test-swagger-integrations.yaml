@@ -1,0 +1,111 @@
+---
+swagger: "2.0"
+info:
+  version: "2016-01-23T20:25:04Z"
+  title: "Cafes-Example"
+host: "zeu2xasnwl.execute-api.us-west-2.amazonaws.com"
+basePath: "/test"
+schemes:
+- "https"
+paths:
+  /cafes:
+    get:
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "__passthrough__"
+        requestTemplates:
+          application/json: "{\n  \"operation\": \"GET_COLLECTION\",\n  \"payload\"\
+            : {}\n}"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:182026393062:function:lambda_cafes/invocations"
+        httpMethod: "POST"
+        type: "aws"
+    put:
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "__passthrough__"
+        requestTemplates:
+          application/json: "{\n  \"operation\": \"$context.httpMethod\",\n  \"payload\"\
+            : $input.json('$')\n}"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:182026393062:function:lambda_cafes/invocations"
+        httpMethod: "POST"
+        type: "aws"
+  /cafes/{id}:
+    get:
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "__passthrough__"
+        requestTemplates:
+          application/json: "{\n  \"operation\":\"$context.httpMethod\",\n  \"payload\"\
+            : {\n    \"id\": \"$input.params('id')\"\n  }\n}"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:182026393062:function:lambda_cafes/invocations"
+        httpMethod: "POST"
+        type: "aws"
+    delete:
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "__passthrough__"
+        requestTemplates:
+          application/json: "{\n  \"operation\":\"$context.httpMethod\",\n  \"payload\"\
+            : {\n    \"id\": \"$input.params('id')\"\n  }\n}"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:182026393062:function:lambda_cafes/invocations"
+        httpMethod: "POST"
+        type: "aws"
+definitions:
+  Empty:
+    type: "object"
