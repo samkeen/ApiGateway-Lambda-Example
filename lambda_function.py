@@ -21,7 +21,7 @@ def lambda_handler(event, context):
     operation = operation.lower()
 
     resource_routes = {
-        'debug': lambda event, context, operation: debug(event, context, operation),
+        'auth': lambda event, context, operation: auth(event, context, operation),
         'users': lambda event, context, operation: users(event, context, operation),
         'cafe': lambda event, context, operation: cafes(event, context, operation),
     }
@@ -32,30 +32,50 @@ def lambda_handler(event, context):
     return resource_routes[resource](event, context, operation)
 
 
-def debug(event, context, operation):
-    debug_operations = {
-        'echo': lambda x: x,
-        'ping': lambda x: 'pong'
-    }
-    if operation not in debug_operations:
-        raise ValueError('Unrecognized operation: {}'.format(operation))
+def auth(event, context, operation):
+    if operation == 'login':
+        table_name = 'cafe_users'
+        dynamo = boto3.resource('dynamodb').Table(table_name)
+        username = event.get('username')
+        client_supplied_password = event.get('password')
+        if not username or not client_supplied_password:
+            raise ValueError("Missing required parameters 'username' and/or 'password")
+        user_response = dynamo.get_item(
+                Key={
+                    'username': username
+                }
+        )
+        if 'Item' not in user_response:
+            return client_error("username and/or password incorrect", 401)
+        user_item = user_response['Item']
+        if not match_password(client_supplied_password, user_item['password']):
+            return client_error("username and/or password incorrect", 401)
+        # if match start cognito flow
+        # else 401 Unauthorized
+    else:
+        raise ValueError("Unknow auth operation: '{}'".format(operation))
 
-    return debug_operations[operation](event.get('payload'))
-
+    return "Logged In"
 
 def users(event, context, operation):
+    # user_operations = {
+    #     'put': lambda x: dynamo.put_item(**x),
+    #     'get': lambda x: dynamo.get_item(**x),
+    #     'delete': lambda x: dynamo.delete_item(**x),
+    #     'get_collection': lambda x: dynamo.scan(**x)
+    # }
     pass
 
 
 def cafes(event, context, operation):
-    dynamo_operations = {
+    cafe_operations = {
         'put': lambda x: dynamo.put_item(**x),
         'get': lambda x: dynamo.get_item(**x),
         'delete': lambda x: dynamo.delete_item(**x),
         'get_collection': lambda x: dynamo.scan(**x)
     }
 
-    if operation not in dynamo_operations:
+    if operation not in cafe_operations:
         raise ValueError('Unrecognized operation: {}'.format(operation))
 
     table_name = 'cafes'
@@ -70,4 +90,16 @@ def cafes(event, context, operation):
         payload = {
             "Item": event.get('payload')
         }
-    return dynamo_operations[operation](payload)
+    return cafe_operations[operation](payload)
+
+
+def client_error(message, http_status_code=400):
+    return "ERROR::CLIENT::{}::{}".format(http_status_code, message)
+
+def match_password(client_supplied_password, hashed_password_on_record):
+    # @TODO
+    # import bcrypt
+    # return bcrypt.hashpw(client_supplied_password, hashed_password_on_record) == hashed_password_on_record
+    # ========
+    # just clear text for proof of concept phase :|
+    return client_supplied_password == hashed_password_on_record
