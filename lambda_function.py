@@ -14,9 +14,9 @@ def lambda_handler(event, context):
     resource = event.get('resource')
     operation = event.get('operation')
     if not resource:
-        raise ValueError("'resource' parameter required")
+        return client_error("'resource' parameter required")
     if not operation:
-        raise ValueError("'operation' parameter required")
+        return client_error("'operation' parameter required")
     resource = resource.lower()
     operation = operation.lower()
 
@@ -27,7 +27,7 @@ def lambda_handler(event, context):
     }
 
     if resource not in resource_routes:
-        raise ValueError("Unknown resource: '{}'".format(resource))
+        return client_error("Unknown resource: '{}'".format(resource))
 
     return resource_routes[resource](event, context, operation)
 
@@ -39,7 +39,7 @@ def auth(event, context, operation):
         username = event.get('username')
         client_supplied_password = event.get('password')
         if not username or not client_supplied_password:
-            raise ValueError("Missing required parameters 'username' and/or 'password")
+            return client_error("Missing required parameters 'username' and/or 'password")
         user_response = dynamo.get_item(
                 Key={
                     'username': username
@@ -53,7 +53,7 @@ def auth(event, context, operation):
         # if match start cognito flow
         # else 401 Unauthorized
     else:
-        raise ValueError("Unknow auth operation: '{}'".format(operation))
+        return client_error("Unknow auth operation: '{}'".format(operation))
 
     return "Logged In"
 
@@ -76,7 +76,7 @@ def cafes(event, context, operation):
     }
 
     if operation not in cafe_operations:
-        raise ValueError('Unrecognized operation: {}'.format(operation))
+        return client_error('Unrecognized cafe operation: {}'.format(operation))
 
     table_name = 'cafes'
     dynamo = boto3.resource('dynamodb').Table(table_name)
@@ -97,7 +97,7 @@ def client_error(message, http_status_code=400):
     return "ERROR::CLIENT::{}::{}".format(http_status_code, message)
 
 def match_password(client_supplied_password, hashed_password_on_record):
-    # @TODO
+    # @TODO issue/#1
     # import bcrypt
     # return bcrypt.hashpw(client_supplied_password, hashed_password_on_record) == hashed_password_on_record
     # ========
