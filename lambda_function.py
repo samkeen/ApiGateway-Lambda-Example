@@ -33,6 +33,13 @@ def lambda_handler(event, context):
 
 
 def auth(event, context, operation):
+    """
+    All the Authentication/Authorization concerns for the app
+    :param event:
+    :param context:
+    :param operation:
+    :return:
+    """
     if operation == 'login':
         table_name = 'cafe_users'
         dynamo = boto3.resource('dynamodb').Table(table_name)
@@ -50,24 +57,54 @@ def auth(event, context, operation):
         user_item = user_response['Item']
         if not match_password(client_supplied_password, user_item['password']):
             return client_error("username and/or password incorrect", 401)
-        # if match start cognito flow
-        # else 401 Unauthorized
+        print("User Found: {}".format(user_item))
+        # start cognito flow using the "Developer Authenticated Identities" work flow
+        # see: mobile.awsblog.com/post/Tx1YVAQ4NZKBWF5/Amazon-Cognito-Announcing-Developer-Authenticated-Identities
+        # see: mobile.awsblog.com/post/Tx2FL1QAPDE0UAH/Understanding-Amazon-Cognito-Authentication-Part-2-Developer-Authenticated-Ident
+        cognito = boto3.client('cognito-identity', region_name='us-east-1')
+        response = cognito.get_open_id_token_for_developer_identity(
+                IdentityPoolId='<AWS REGION>:<UUID>',
+                Logins={
+                    'serverless-demo.qstratus.com': user_item['username']
+                }
+        )
+        # {Token: '', IdentityId: '', ResponseMetadata: {}}
+        print("Cognito Response IdentityId: {}".format(response['IdentityId']))
+        identity = cognito.get_credentials_for_identity(
+            IdentityId=response['IdentityId'],
+            Logins={
+                'cognito-identity.amazonaws.com': response['Token']
+            }
+        )
+        print("Identity: {}".format(identity))
+
+
+
     else:
         return client_error("Unknow auth operation: '{}'".format(operation))
 
     return "Logged In"
 
+
 def users(event, context, operation):
-    # user_operations = {
-    #     'put': lambda x: dynamo.put_item(**x),
-    #     'get': lambda x: dynamo.get_item(**x),
-    #     'delete': lambda x: dynamo.delete_item(**x),
-    #     'get_collection': lambda x: dynamo.scan(**x)
-    # }
+    """
+    All the User account concerns for the App
+    :param event:
+    :param context:
+    :param operation:
+    :return:
+    """
     pass
 
 
 def cafes(event, context, operation):
+    """
+    This is the example Resource for the App.  This is a App User contributed resource
+    :param event:
+    :param context:
+    :param operation:
+    :return:
+    """
     cafe_operations = {
         'put': lambda x: dynamo.put_item(**x),
         'get': lambda x: dynamo.get_item(**x),
@@ -94,7 +131,16 @@ def cafes(event, context, operation):
 
 
 def client_error(message, http_status_code=400):
+    """
+    Simple util function to return an error in a consistent format to the calling
+    system (API Gateway in this case.
+
+    :param message:
+    :param http_status_code:
+    :return:
+    """
     return "ERROR::CLIENT::{}::{}".format(http_status_code, message)
+
 
 def match_password(client_supplied_password, hashed_password_on_record):
     # @TODO issue/#1
