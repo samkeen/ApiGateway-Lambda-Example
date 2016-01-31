@@ -1,10 +1,10 @@
 ---
 swagger: "2.0"
 info:
-  version: "2016-01-23T20:25:04Z"
+  version: "2016-01-31T17:57:09Z"
   title: "Cafes-Example"
 host: "zeu2xasnwl.execute-api.us-west-2.amazonaws.com"
-basePath: "/test"
+basePath: "/poc"
 schemes:
 - "https"
 paths:
@@ -52,6 +52,28 @@ paths:
         in: "path"
         required: true
         type: "string"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers: {}
+  /login:
+    post:
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers: {}
+  /register:
+    put:
+      produces:
+      - "application/json"
+      parameters: []
       responses:
         200:
           description: "200 response"

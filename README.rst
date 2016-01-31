@@ -1,5 +1,5 @@
 ApiGateway-Lambda-Example
-=========================
+#########################
 
 Work in progress, ultimate goal is to complete this as an example that
 
@@ -10,7 +10,7 @@ Work in progress, ultimate goal is to complete this as an example that
 
 
 Methods
--------
+*******
 
 Create a Cafe Item::
 
@@ -41,7 +41,7 @@ Update a Cafe item::
 
 
 Cognito Notes
--------------
+*************
 
 Request/Responses::
 
@@ -91,3 +91,26 @@ Request/Responses::
        u'IdentityId': u'<AWS REGION>:<IDENTITY_ID_UUID>'
      }
 
+Lambda Notes
+************
+
+Login Test Payload::
+
+    {
+        "resource": "auth",
+        "operation": "login",
+        "payload": {
+            "username": "bob",
+            "password": "secret"
+        }
+    }
+
+Get User Test Payload::
+
+    {
+        "resource": "cafe",
+        "operation":"GET",
+        "payload": {
+            "id": "99"
+        }
+    }

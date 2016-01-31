@@ -13,17 +13,21 @@ def lambda_handler(event, context):
     """
     resource = event.get('resource')
     operation = event.get('operation')
+    request_payload = event.get('payload')
+    print("recieved event: '{}'".format(event))
     if not resource:
         return client_error("'resource' parameter required")
     if not operation:
         return client_error("'operation' parameter required")
+    if 'payload' not in event:
+        return client_error("'payload' parameter required")
     resource = resource.lower()
     operation = operation.lower()
 
     resource_routes = {
-        'auth': lambda event, context, operation: auth(event, context, operation),
-        'users': lambda event, context, operation: users(event, context, operation),
-        'cafe': lambda event, context, operation: cafes(event, context, operation),
+        'auth': lambda payload, context, operation: auth(request_payload, context, operation),
+        'users': lambda payload, context, operation: users(request_payload, context, operation),
+        'cafe': lambda payload, context, operation: cafes(request_payload, context, operation),
     }
 
     if resource not in resource_routes:
@@ -32,21 +36,21 @@ def lambda_handler(event, context):
     return resource_routes[resource](event, context, operation)
 
 
-def auth(event, context, operation):
+def auth(payload, context, operation):
     """
     All the Authentication/Authorization concerns for the app
-    :param event:
-    :param context:
+    :param payload:
     :param operation:
     :return:
     """
+    print("Operation: '{}', payload: {}".format(operation, payload))
     if operation == 'login':
         table_name = 'cafe_users'
         dynamo = boto3.resource('dynamodb').Table(table_name)
-        username = event.get('username')
-        client_supplied_password = event.get('password')
-        if not username or not client_supplied_password:
-            return client_error("Missing required parameters 'username' and/or 'password")
+        if 'username' not in payload or 'password' not in payload:
+            return client_error("Missing required parameters 'username' and/or 'password'")
+        username = payload['username']
+        client_supplied_password = payload['password']
         user_response = dynamo.get_item(
                 Key={
                     'username': username
@@ -55,6 +59,7 @@ def auth(event, context, operation):
         if 'Item' not in user_response:
             return client_error("username and/or password incorrect", 401)
         user_item = user_response['Item']
+        print("User found: {}".format(user_item))
         if not match_password(client_supplied_password, user_item['password']):
             return client_error("username and/or password incorrect", 401)
         print("User Found: {}".format(user_item))
@@ -63,7 +68,7 @@ def auth(event, context, operation):
         # see: mobile.awsblog.com/post/Tx2FL1QAPDE0UAH/Understanding-Amazon-Cognito-Authentication-Part-2-Developer-Authenticated-Ident
         cognito = boto3.client('cognito-identity', region_name='us-east-1')
         response = cognito.get_open_id_token_for_developer_identity(
-                IdentityPoolId='<AWS REGION>:<UUID>',
+                IdentityPoolId='us-east-1:489dd764-1fd3-4e2a-9c7b-0be784d24aba',
                 Logins={
                     'serverless-demo.qstratus.com': user_item['username']
                 }
@@ -77,19 +82,16 @@ def auth(event, context, operation):
             }
         )
         print("Identity: {}".format(identity))
-
-
-
     else:
         return client_error("Unknow auth operation: '{}'".format(operation))
 
     return "Logged In"
 
 
-def users(event, context, operation):
+def users(payload, context, operation):
     """
     All the User account concerns for the App
-    :param event:
+    :param payload:
     :param context:
     :param operation:
     :return:
@@ -97,10 +99,10 @@ def users(event, context, operation):
     pass
 
 
-def cafes(event, context, operation):
+def cafes(payload, context, operation):
     """
     This is the example Resource for the App.  This is a App User contributed resource
-    :param event:
+    :param payload:
     :param context:
     :param operation:
     :return:
@@ -118,16 +120,17 @@ def cafes(event, context, operation):
     table_name = 'cafes'
     dynamo = boto3.resource('dynamodb').Table(table_name)
 
-    payload = {}
+    call_payload = {}
     if operation in ('get', 'delete'):
-        payload = {
-            "Key": event.get('payload')
+        call_payload = {
+            "Key": payload
         }
     elif operation == 'put':
-        payload = {
-            "Item": event.get('payload')
+        call_payload = {
+            "Item": payload
         }
-    return cafe_operations[operation](payload)
+    print("Calling Dynamo, operation: '{}', with call_payload: {}".format(operation, call_payload))
+    return cafe_operations[operation](call_payload)
 
 
 def client_error(message, http_status_code=400):
