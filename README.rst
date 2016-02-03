@@ -30,7 +30,7 @@ scope requires the request to be *signed* using credentials obtained via the Aut
 
 The discrete steps for Authentication/Authorization of this examples are:
 
-0. Create a `Cognito Identity pool <https://docs.aws.amazon.com/cognito/devguide/identity/identity-pools/>`.  The TL;DR
+0. Create a `Cognito Identity pool <https://docs.aws.amazon.com/cognito/devguide/identity/identity-pools/>`_.  The TL;DR
 of Identity pools is that they create a namespace for user Identities; the Pool.  To this pool you attach
 Authentication providers, for this example you will have only a custom, *Developer provider* Authentication provider.
 Secondly, you attach Authorization permissions to this pool in the form of IAM policies.
