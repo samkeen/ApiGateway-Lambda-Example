@@ -42,8 +42,7 @@ what you have persisted in a database.
 call to Cognito to generate (or retrieve) the Identity pool's uuid for this user + an expiring OpenIdConnect token for
 this user.
 
-3. When then turn around and make a call to Cognito and exchange the OpenIdConnect token for a set of expiring credentials
-to pass back to the Client.  These credentials grant the Authorization permissions of the IAM policy associated
+3. When then turn around and make an unsigned call to Cognito and exchange the OpenIdConnect token for a set of expiring credentials to pass back to the Client.  These credentials grant the Authorization permissions of the IAM policy associated
 with the Cognito Identity Pool to the user we Authenticated in step 1.  The client will then use the credentials to
 sign requests for the Authenticated scope of the site/service.
 
