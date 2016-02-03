@@ -71,7 +71,8 @@ def auth(payload, context, operation):
                 IdentityPoolId='us-east-1:489dd764-1fd3-4e2a-9c7b-0be784d24aba',
                 Logins={
                     'serverless-demo.qstratus.com': user_item['username']
-                }
+                },
+                TokenDuration= 900 # default 900 sec (15 min), max 24hrs
         )
         # {Token: '', IdentityId: '', ResponseMetadata: {}}
         print("Cognito Response IdentityId: {}".format(response['IdentityId']))
