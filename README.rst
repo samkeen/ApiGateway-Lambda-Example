@@ -46,6 +46,41 @@ this user.
 with the Cognito Identity Pool to the user we Authenticated in step 1.  The client will then use the credentials to
 sign requests for the Authenticated scope of the site/service.
 
+IAM Notes
+*********
+
+Cognito IAM Role
+================
+
+This is the role that the *client* of the application will authenticate into.
+
+* Permission to invoke the authenticated resource endpoints of APIGateway
+* Permission to invoke the Lambda function ????
+
+Lambda IAM Role
+===============
+
+This needs authorization to access the resources needed for the application.   For this example that is:
+
+* DynamoDB
+* AWS Logs
+* Cognito
+
+APIGateway
+==========
+
+Unauthenticated endpoints (/login)
+----------------------------------
+
+Simply need authorization to run the lambda function
+
+Authenticated Endpoints
+-----------------------
+
+These utilize the client credentials, those described in *Cognito IAM Role*.
+
+
+
 Methods
 *******
 
