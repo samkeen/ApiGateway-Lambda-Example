@@ -16,16 +16,17 @@ def lambda_handler(event, context):
     """
 
     COGNITO_REGION = 'us-east-1'
-    IDENTITY_POOL_NAME = ''
+    # IDENTITY_PROVIDER_NAME is found under 'Authentication providers' -> 'Custom' Tab
+    IDENTITY_PROVIDER_NAME = 'qstratus.cafe_serverless'
     IDENTITY_POOL_ID = ''
+    USERS_TABLE_NAME = 'ServerlessCafe_users'
 
     request_payload = event.get('payload')
     print("received event: '{}'".format(event))
     if 'payload' not in event:
         return client_error("'payload' parameter required")
 
-    table_name = 'cafe_users'
-    dynamo = boto3.resource('dynamodb').Table(table_name)
+    dynamo = boto3.resource('dynamodb').Table(USERS_TABLE_NAME)
     if 'username' not in request_payload or 'password' not in request_payload:
         return client_error("Missing required parameters 'username' and/or 'password'")
     username = request_payload['username']
@@ -46,7 +47,7 @@ def lambda_handler(event, context):
     # see: mobile.awsblog.com/post/Tx2FL1QAPDE0UAH/Understanding-Amazon-Cognito-Authentication-Part-2-Developer-Authenticated-Ident
     cognito = boto3.client('cognito-identity', region_name=COGNITO_REGION)
     logins = {}
-    logins[IDENTITY_POOL_NAME] = user_item['username']
+    logins[IDENTITY_PROVIDER_NAME] = user_item['username']
     response = cognito.get_open_id_token_for_developer_identity(
         IdentityPoolId=IDENTITY_POOL_ID,
         Logins=logins,

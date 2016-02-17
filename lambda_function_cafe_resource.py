@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import boto3
 
+CAFES_TABLE_NAME = 'ServerlessCafe_cafes'
 
 def lambda_handler(event, context):
     """
@@ -40,8 +41,7 @@ def cafes(payload, operation):
     if operation not in cafe_operations:
         return client_error('Unrecognized cafe operation: {}'.format(operation))
 
-    table_name = 'cafes'
-    dynamo = boto3.resource('dynamodb').Table(table_name)
+    dynamo = boto3.resource('dynamodb').Table(CAFES_TABLE_NAME)
 
     call_payload = {}
     if operation in ('get', 'delete'):

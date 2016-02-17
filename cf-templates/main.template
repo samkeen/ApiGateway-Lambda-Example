@@ -1,6 +1,19 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Serverless Cafe example. Leveraging Coginito for authorization",
+  "Parameters": {
+    "CognitoIdentityPoolId": {
+      "Type": "String",
+      "Description": "The Cognito Identity Pool Id (NOT arn)",
+      "Default": "us-east-1:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    },
+    "CognitoIdentityPoolARN": {
+      "Type": "String",
+      "Description": "The Cognito Identity Pool full ARN",
+      "AllowedPattern": "^arn:aws:cognito-identity:.*",
+      "Default": "arn:aws:cognito-identity:xxxxxxxxxxxxxxxxxxxxxxxx"
+    }
+  },
   "Metadata": {
   },
   "Resources": {
@@ -32,13 +45,13 @@
         "TableName": "ServerlessCafe_users",
         "AttributeDefinitions": [
           {
-            "AttributeName": "uuid",
+            "AttributeName": "username",
             "AttributeType": "S"
           }
         ],
         "KeySchema": [
           {
-            "AttributeName": "uuid",
+            "AttributeName": "username",
             "KeyType": "HASH"
           }
         ],
@@ -123,6 +136,161 @@
         "Roles": [
           {
             "Ref": "CafesTableAccessForLambdaRole"
+          }
+        ]
+      }
+    },
+    "AuthenticateUserForLambdaRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/"
+      }
+    },
+    "AuthenticateUserForLambdaPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "root",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "UsersTableAccess",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:dynamodb:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":table/",
+                    {
+                      "Ref": "UsersTable"
+                    }
+                  ]
+                ]
+              }
+            },
+            {
+              "Sid": "CognitoAccess",
+              "Action": [
+                "cognito-identity:GetOpenIdTokenForDeveloperIdentity"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "CognitoIdentityPoolARN"
+              }
+            },
+            {
+              "Sid": "CloudWatchLogsCreation",
+              "Resource": "*",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Effect": "Allow"
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "AuthenticateUserForLambdaRole"
+          }
+        ]
+      }
+    },
+    "AuthenticatedUserForCognitoRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": [
+                  "cognito-identity.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRoleWithWebIdentity"
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "cognito-identity.amazonaws.com:aud": {
+                    "Ref": "CognitoIdentityPoolId"
+                  }
+                },
+                "ForAnyValue:StringLike": {
+                  "cognito-identity.amazonaws.com:amr": "authenticated"
+                }
+              }
+            }
+          ]
+        },
+        "Path": "/"
+      }
+    },
+    "AuthenticatedUserForCognitoPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "root",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "UserAuthorizations",
+              "Action": [
+                "lambda:InvokeFunction",
+                "execute-api:Invoke"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:lambda:us-west-2:xxxxxxxxxxxx:function:ServerlessCafe_CafeResourceAccess",
+                "arn:aws:execute-api:us-west-2:xxxxxxxxxxxx:yyyyyyyyyy/*/GET/cafes",
+                "arn:aws:execute-api:us-west-2:xxxxxxxxxxxx:yyyyyyyyyy/*/*/cafes/*"
+            ]
+            },
+            {
+              "Sid": "CloudWatchLogsCreation",
+              "Resource": "*",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Effect": "Allow"
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "AuthenticatedUserForCognitoRole"
           }
         ]
       }

@@ -1,4 +1,5 @@
 /.idea/
+/ApiGatewayExports/CafeServerless_API_Gateway-test-swagger-integrations.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

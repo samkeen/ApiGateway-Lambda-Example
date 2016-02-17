@@ -1,0 +1,190 @@
+---
+swagger: "2.0"
+info:
+  version: "2016-02-16T21:57:14Z"
+  title: "ServerlessCafe_API_Gateway"
+host: "execute-api.us-west-2.amazonaws.com"
+basePath: "/"
+schemes:
+- "https"
+paths:
+  /cafes:
+    get:
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers: {}
+      security:
+      - sigv4: []
+      x-amazon-apigateway-auth:
+        type: aws_iam
+      x-amazon-apigateway-integration:
+        credentials: "arn:aws:iam::*:user/*"
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "__passthrough__"
+        requestTemplates:
+          application/json: "{\n    \"resource\":\"cafes\",\n    \"operation\": \"\
+            get_collection\",\n    \"payload\": {}\n}"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:<<AWS ACCOUNT NUMBER>>:function:<<CafeResourceAccess Lambda Function Name>>/invocations"
+        httpMethod: "POST"
+        type: "aws"
+  /cafes/{id}:
+    get:
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers: {}
+      security:
+      - sigv4: []
+      x-amazon-apigateway-auth:
+        type: aws_iam
+      x-amazon-apigateway-integration:
+        credentials: "arn:aws:iam::*:user/*"
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "__passthrough__"
+        requestTemplates:
+          application/json: "{\n    \"resource\": \"cafe\",    \n    \"operation\"\
+            :\"$context.httpMethod\",\n    \"payload\": {\n        \"id\": \"$input.params('id')\"\
+            \n    }\n}"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:<<AWS ACCOUNT NUMBER>>:function:<<CafeResourceAccess Lambda Function Name>>/invocations"
+        httpMethod: "POST"
+        type: "aws"
+    put:
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers: {}
+      security:
+      - sigv4: []
+      x-amazon-apigateway-auth:
+        type: aws_iam
+      x-amazon-apigateway-integration:
+        credentials: "arn:aws:iam::*:user/*"
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "__passthrough__"
+        requestTemplates:
+          application/json: "#set( $payload = $input.json('$'))\n## interate on $payload\
+            \ and build json payload string\n## manually and then you can add \"id\"\
+            : \"$input.params('id')\"\n{\n  \"operation\": \"$context.httpMethod\"\
+            ,\n  \"payload\": $payload\n}"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:<<AWS ACCOUNT NUMBER>>:function:<<CafeResourceAccess Lambda Function Name>>/invocations"
+        httpMethod: "POST"
+        type: "aws"
+    delete:
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers: {}
+      security:
+      - sigv4: []
+      x-amazon-apigateway-auth:
+        type: aws_iam
+      x-amazon-apigateway-integration:
+        credentials: "arn:aws:iam::*:user/*"
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "__passthrough__"
+        requestTemplates:
+          application/json: "{\n    \"resource\": \"cafe\",\n    \"operation\":\"\
+            $context.httpMethod\",\n    \"payload\": {\n        \"id\": \"$input.params('id')\"\
+            \n    }\n}"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:<<AWS ACCOUNT NUMBER>>:function:<<CafeResourceAccess Lambda Function Name>>/invocations"
+        httpMethod: "POST"
+        type: "aws"
+  /login:
+    post:
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers: {}
+        400:
+          description: "400 response"
+          headers: {}
+        401:
+          description: "401 response"
+          headers: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "__passthrough__"
+          status_code:=401.*:
+            statusCode: "401"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n#set($errorParts\
+                \ = $inputRoot.errorMessage.split(\"\\|\"))\n{\n#foreach( $segemnts\
+                \ in $errorParts )\n  #set($keyValTokens = $segemnts.split(\":=\"\
+                ))\n  \"$keyValTokens[0]\" : \"$keyValTokens[1]\"#if( $foreach.hasNext\
+                \ ),\n  #end\n#end\n}"
+          status_code:=400.*:
+            statusCode: "400"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n#set($errorParts\
+                \ = $inputRoot.errorMessage.split(\"\\|\"))\n{\n#foreach( $segemnts\
+                \ in $errorParts )\n  #set($keyValTokens = $segemnts.split(\":=\"\
+                ))\n  \"$keyValTokens[0]\" : \"$keyValTokens[1]\"#if( $foreach.hasNext\
+                \ ),\n  #end\n#end\n}"
+        requestTemplates:
+          application/json: "{\n    \"resource\":\"auth\",\n    \"operation\": \"\
+            login\",\n    \"payload\": $input.json('$')\n}"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:<<AWS ACCOUNT NUMBER>>:function:<<AuthenticateUser Lambda Function Name>>/invocations"
+        httpMethod: "POST"
+        type: "aws"
+securityDefinitions:
+  sigv4:
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+    x-amazon-apigateway-authtype: "awsSigv4"
+definitions:
+  Empty:
+    type: "object"
