@@ -15,10 +15,13 @@ def lambda_handler(event, context):
     :return:
     """
 
-    COGNITO_REGION = 'us-east-1'
+    ### START :: NEED FILL IN THESE VALUES ###################################
+    COGNITO_REGION = ''
     # IDENTITY_PROVIDER_NAME is found under 'Authentication providers' -> 'Custom' Tab
-    IDENTITY_PROVIDER_NAME = 'qstratus.cafe_serverless'
+    IDENTITY_PROVIDER_NAME = ''
     IDENTITY_POOL_ID = ''
+    ### END :: NEED FILL IN THESE VALUES #####################################
+
     USERS_TABLE_NAME = 'ServerlessCafe_users'
 
     request_payload = event.get('payload')
