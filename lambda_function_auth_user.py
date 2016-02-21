@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import boto3
 
+
 class ClientError(Exception):
     pass
 
@@ -70,6 +71,7 @@ def lambda_handler(event, context):
     pp.pprint(identity)
     return format_credentials_response(identity['Credentials'])
 
+
 def format_credentials_response(credentials):
     """
 
@@ -87,6 +89,7 @@ def format_credentials_response(credentials):
         }
     }
 
+
 def client_error(message, http_status_code=400):
     """
     Simple util function to return an error in a consistent format to the calling
@@ -99,6 +102,7 @@ def client_error(message, http_status_code=400):
 
     client_error = ClientError("status_code:={}|message:={}".format(http_status_code, message))
     raise client_error
+
 
 def match_password(client_supplied_password, hashed_password_on_record):
     # @TODO issue/#1
