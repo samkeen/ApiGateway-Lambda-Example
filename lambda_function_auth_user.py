@@ -19,7 +19,7 @@ def lambda_handler(event, context):
     ### START :: NEED FILL IN THESE VALUES ###################################
     COGNITO_REGION = ''
     # IDENTITY_PROVIDER_NAME is found under 'Authentication providers' -> 'Custom' Tab
-    IDENTITY_PROVIDER_NAME = ''
+    DEVELOPER_PROVIDER_NAME = ''
     IDENTITY_POOL_ID = ''
     ### END :: NEED FILL IN THESE VALUES #####################################
 
@@ -51,7 +51,7 @@ def lambda_handler(event, context):
     # see: mobile.awsblog.com/post/Tx2FL1QAPDE0UAH/Understanding-Amazon-Cognito-Authentication-Part-2-Developer-Authenticated-Ident
     cognito = boto3.client('cognito-identity', region_name=COGNITO_REGION)
     logins = {}
-    logins[IDENTITY_PROVIDER_NAME] = user_item['username']
+    logins[DEVELOPER_PROVIDER_NAME] = user_item['username']
     response = cognito.get_open_id_token_for_developer_identity(
         IdentityPoolId=IDENTITY_POOL_ID,
         Logins=logins,
